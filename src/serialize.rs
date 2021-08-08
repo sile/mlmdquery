@@ -234,3 +234,15 @@ impl From<mlmd::metadata::ExecutionState> for ExecutionState {
         }
     }
 }
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Context {
+    pub id: i32,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_name: String,
+    pub ctime: f64,
+    pub mtime: f64,
+    pub properties: BTreeMap<String, PropertyValue>,
+    pub custom_properties: BTreeMap<String, PropertyValue>,
+}
