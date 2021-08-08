@@ -193,3 +193,44 @@ impl From<mlmd::metadata::PropertyValue> for PropertyValue {
         }
     }
 }
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Execution {
+    pub id: i32,
+    pub name: Option<String>,
+    #[serde(rename = "type")]
+    pub type_name: String,
+    pub state: ExecutionState,
+    pub ctime: f64,
+    pub mtime: f64,
+    pub properties: BTreeMap<String, PropertyValue>,
+    pub custom_properties: BTreeMap<String, PropertyValue>,
+}
+
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ExecutionState {
+    Unknown,
+    New,
+    Running,
+    Complete,
+    Failed,
+    Cached,
+    Canceled,
+}
+
+impl From<mlmd::metadata::ExecutionState> for ExecutionState {
+    fn from(x: mlmd::metadata::ExecutionState) -> Self {
+        use mlmd::metadata::ExecutionState::*;
+
+        match x {
+            Unknown => Self::Unknown,
+            New => Self::New,
+            Running => Self::Running,
+            Complete => Self::Complete,
+            Failed => Self::Failed,
+            Cached => Self::Cached,
+            Canceled => Self::Canceled,
+        }
+    }
+}

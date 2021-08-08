@@ -1,10 +1,10 @@
-use crate::serialize::Artifact;
+use crate::serialize::Execution;
 use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 
 #[derive(Debug, structopt::StructOpt)]
 #[structopt(rename_all = "kebab-case")]
-pub struct CommonArtifactsOpt {
+pub struct CommonExecutionsOpt {
     #[structopt(long, env = "MLMD_DB")]
     pub db: String,
 
@@ -16,9 +16,6 @@ pub struct CommonArtifactsOpt {
 
     #[structopt(long = "type")]
     pub type_name: Option<String>,
-
-    #[structopt(long)]
-    pub uri: Option<String>,
 
     #[structopt(long)]
     pub context: Option<i32>,
@@ -36,27 +33,24 @@ pub struct CommonArtifactsOpt {
     pub mtime_end: Option<f64>,
 }
 
-impl CommonArtifactsOpt {
+impl CommonExecutionsOpt {
     fn request<'a>(
         &self,
         store: &'a mut mlmd::MetadataStore,
-    ) -> mlmd::requests::GetArtifactsRequest<'a> {
-        let mut request = store.get_artifacts();
+    ) -> mlmd::requests::GetExecutionsRequest<'a> {
+        let mut request = store.get_executions();
 
         if !self.ids.is_empty() {
             request = request.ids(
                 self.ids
                     .iter()
                     .copied()
-                    .map(mlmd::metadata::ArtifactId::new),
+                    .map(mlmd::metadata::ExecutionId::new),
             );
         }
         if let Some(name) = &self.name {
             let type_name = self.type_name.as_ref().expect("unreachable");
             request = request.type_and_name(type_name, name);
-        }
-        if let Some(x) = &self.uri {
-            request = request.uri(x);
         }
         if let Some(x) = self.context {
             request = request.context(mlmd::metadata::ContextId::new(x));
@@ -83,18 +77,18 @@ impl CommonArtifactsOpt {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum ArtifactOrderByField {
+pub enum ExecutionOrderByField {
     Id,
     Name,
     CreateTime,
     UpdateTime,
 }
 
-impl ArtifactOrderByField {
+impl ExecutionOrderByField {
     pub const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
 }
 
-impl std::str::FromStr for ArtifactOrderByField {
+impl std::str::FromStr for ExecutionOrderByField {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> anyhow::Result<Self> {
@@ -108,24 +102,24 @@ impl std::str::FromStr for ArtifactOrderByField {
     }
 }
 
-impl From<ArtifactOrderByField> for mlmd::requests::ArtifactOrderByField {
-    fn from(x: ArtifactOrderByField) -> Self {
+impl From<ExecutionOrderByField> for mlmd::requests::ExecutionOrderByField {
+    fn from(x: ExecutionOrderByField) -> Self {
         match x {
-            ArtifactOrderByField::Id => Self::Id,
-            ArtifactOrderByField::Name => Self::Name,
-            ArtifactOrderByField::CreateTime => Self::CreateTime,
-            ArtifactOrderByField::UpdateTime => Self::UpdateTime,
+            ExecutionOrderByField::Id => Self::Id,
+            ExecutionOrderByField::Name => Self::Name,
+            ExecutionOrderByField::CreateTime => Self::CreateTime,
+            ExecutionOrderByField::UpdateTime => Self::UpdateTime,
         }
     }
 }
 
 #[derive(Debug, structopt::StructOpt)]
-pub struct CountArtifactsOpt {
+pub struct CountExecutionsOpt {
     #[structopt(flatten)]
-    pub common: CommonArtifactsOpt,
+    pub common: CommonExecutionsOpt,
 }
 
-impl CountArtifactsOpt {
+impl CountExecutionsOpt {
     pub async fn count(&self) -> anyhow::Result<usize> {
         let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
         let n = self.common.request(&mut store).count().await?;
@@ -134,12 +128,12 @@ impl CountArtifactsOpt {
 }
 
 #[derive(Debug, structopt::StructOpt)]
-pub struct GetArtifactsOpt {
+pub struct GetExecutionsOpt {
     #[structopt(flatten)]
-    pub common: CommonArtifactsOpt,
+    pub common: CommonExecutionsOpt,
 
-    #[structopt(long, default_value="id", possible_values = ArtifactOrderByField::POSSIBLE_VALUES)]
-    pub order_by: ArtifactOrderByField,
+    #[structopt(long, default_value="id", possible_values = ExecutionOrderByField::POSSIBLE_VALUES)]
+    pub order_by: ExecutionOrderByField,
 
     #[structopt(long)]
     pub asc: bool,
@@ -151,10 +145,10 @@ pub struct GetArtifactsOpt {
     pub offset: usize,
 }
 
-impl GetArtifactsOpt {
-    pub async fn get(&self) -> anyhow::Result<Vec<Artifact>> {
+impl GetExecutionsOpt {
+    pub async fn get(&self) -> anyhow::Result<Vec<Execution>> {
         let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
-        let artifacts = self
+        let executions = self
             .common
             .request(&mut store)
             .limit(self.limit)
@@ -163,15 +157,14 @@ impl GetArtifactsOpt {
             .execute()
             .await?;
 
-        let artifact_types = self.get_artifact_types(&mut store, &artifacts).await?;
-        Ok(artifacts
+        let execution_types = self.get_execution_types(&mut store, &executions).await?;
+        Ok(executions
             .into_iter()
-            .map(|x| Artifact {
+            .map(|x| Execution {
                 id: x.id.get(),
                 name: x.name,
-                type_name: artifact_types[&x.type_id].clone(),
-                uri: x.uri,
-                state: x.state.into(),
+                type_name: execution_types[&x.type_id].clone(),
+                state: x.last_known_state.into(),
                 ctime: x.create_time_since_epoch.as_secs_f64(),
                 mtime: x.last_update_time_since_epoch.as_secs_f64(),
                 properties: x
@@ -188,15 +181,15 @@ impl GetArtifactsOpt {
             .collect())
     }
 
-    async fn get_artifact_types(
+    async fn get_execution_types(
         &self,
         store: &mut mlmd::MetadataStore,
-        artifacts: &[mlmd::metadata::Artifact],
+        executions: &[mlmd::metadata::Execution],
     ) -> anyhow::Result<BTreeMap<mlmd::metadata::TypeId, String>> {
         Ok(store
-            .get_artifact_types()
+            .get_execution_types()
             .ids(
-                artifacts
+                executions
                     .iter()
                     .map(|x| x.type_id)
                     .collect::<BTreeSet<_>>()
