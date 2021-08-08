@@ -16,7 +16,7 @@ enum CountOpt {
     ExecutionTypes(mlmdquery::execution_types::ExecutionTypesOpt),
     Contexts,
     ContextTypes(mlmdquery::context_types::ContextTypesOpt),
-    Events,
+    Events(mlmdquery::events::CountEventsOpt),
 }
 
 #[derive(Debug, StructOpt)]
@@ -28,7 +28,7 @@ enum GetOpt {
     ExecutionTypes(mlmdquery::execution_types::ExecutionTypesOpt),
     Contexts,
     ContextTypes(mlmdquery::context_types::ContextTypesOpt),
-    Events,
+    Events(mlmdquery::events::GetEventsOpt),
 }
 
 #[tokio::main]
@@ -41,6 +41,8 @@ async fn main() -> anyhow::Result<()> {
         Opt::Get(GetOpt::ExecutionTypes(opt)) => print_json(opt.get().await?)?,
         Opt::Count(CountOpt::ContextTypes(opt)) => print_json(opt.count().await?)?,
         Opt::Get(GetOpt::ContextTypes(opt)) => print_json(opt.get().await?)?,
+        Opt::Count(CountOpt::Events(opt)) => print_json(opt.count().await?)?,
+        Opt::Get(GetOpt::Events(opt)) => print_json(opt.get().await?)?,
         _ => todo!(),
     }
     Ok(())
