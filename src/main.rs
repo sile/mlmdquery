@@ -10,7 +10,7 @@ enum Opt {
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum CountOpt {
-    Artifacts,
+    Artifacts(mlmdquery::artifacts::CountArtifactsOpt),
     ArtifactTypes(mlmdquery::artifact_types::ArtifactTypesOpt),
     Executions,
     ExecutionTypes(mlmdquery::execution_types::ExecutionTypesOpt),
@@ -22,7 +22,7 @@ enum CountOpt {
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum GetOpt {
-    Artifacts,
+    Artifacts(mlmdquery::artifacts::GetArtifactsOpt),
     ArtifactTypes(mlmdquery::artifact_types::ArtifactTypesOpt),
     Executions,
     ExecutionTypes(mlmdquery::execution_types::ExecutionTypesOpt),
@@ -35,6 +35,8 @@ enum GetOpt {
 async fn main() -> anyhow::Result<()> {
     let opt = Opt::from_args();
     match opt {
+        Opt::Count(CountOpt::Artifacts(opt)) => print_json(opt.count().await?)?,
+        Opt::Get(GetOpt::Artifacts(opt)) => print_json(opt.get().await?)?,
         Opt::Count(CountOpt::ArtifactTypes(opt)) => print_json(opt.count().await?)?,
         Opt::Get(GetOpt::ArtifactTypes(opt)) => print_json(opt.get().await?)?,
         Opt::Count(CountOpt::ExecutionTypes(opt)) => print_json(opt.count().await?)?,

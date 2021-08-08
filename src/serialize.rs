@@ -135,3 +135,61 @@ impl From<mlmd::metadata::EventStep> for EventStep {
         }
     }
 }
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Artifact {
+    pub id: i32,
+    pub name: Option<String>,
+    #[serde(rename = "type")]
+    pub type_name: String,
+    pub uri: Option<String>,
+    pub state: ArtifactState,
+    pub ctime: f64,
+    pub mtime: f64,
+    pub properties: BTreeMap<String, PropertyValue>,
+    pub custom_properties: BTreeMap<String, PropertyValue>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ArtifactState {
+    Unknown,
+    Pending,
+    Live,
+    MarkedForDeletion,
+    Deleted,
+}
+
+impl From<mlmd::metadata::ArtifactState> for ArtifactState {
+    fn from(x: mlmd::metadata::ArtifactState) -> Self {
+        use mlmd::metadata::ArtifactState::*;
+
+        match x {
+            Unknown => Self::Unknown,
+            Pending => Self::Pending,
+            Live => Self::Live,
+            MarkedForDeletion => Self::MarkedForDeletion,
+            Deleted => Self::Deleted,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(untagged)]
+pub enum PropertyValue {
+    Int(i32),
+    Double(f64),
+    String(String),
+}
+
+impl From<mlmd::metadata::PropertyValue> for PropertyValue {
+    fn from(x: mlmd::metadata::PropertyValue) -> Self {
+        use mlmd::metadata::PropertyValue::*;
+
+        match x {
+            Int(x) => Self::Int(x),
+            Double(x) => Self::Double(x),
+            String(x) => Self::String(x),
+        }
+    }
+}
