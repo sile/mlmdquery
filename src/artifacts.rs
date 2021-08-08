@@ -51,9 +51,14 @@ impl CommonArtifactsOpt {
                     .map(mlmd::metadata::ArtifactId::new),
             );
         }
-        if let Some(name) = &self.name {
-            let type_name = self.type_name.as_ref().expect("unreachable");
-            request = request.type_and_name(type_name, name);
+        match (&self.name, &self.type_name) {
+            (Some(name), Some(type_name)) => {
+                request = request.type_and_name(type_name, name);
+            }
+            (None, Some(type_name)) => {
+                request = request.ty(type_name);
+            }
+            _ => {}
         }
         if let Some(x) = &self.uri {
             request = request.uri(x);

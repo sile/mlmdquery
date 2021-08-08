@@ -46,9 +46,14 @@ impl CommonContextsOpt {
         if !self.ids.is_empty() {
             request = request.ids(self.ids.iter().copied().map(mlmd::metadata::ContextId::new));
         }
-        if let Some(name) = &self.name {
-            let type_name = self.type_name.as_ref().expect("unreachable");
-            request = request.type_and_name(type_name, name);
+        match (&self.name, &self.type_name) {
+            (Some(name), Some(type_name)) => {
+                request = request.type_and_name(type_name, name);
+            }
+            (None, Some(type_name)) => {
+                request = request.ty(type_name);
+            }
+            _ => {}
         }
         if let Some(x) = self.artifact {
             request = request.artifact(mlmd::metadata::ArtifactId::new(x));
