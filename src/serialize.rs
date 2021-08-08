@@ -21,6 +21,34 @@ impl From<mlmd::metadata::ArtifactType> for Type {
     }
 }
 
+impl From<mlmd::metadata::ExecutionType> for Type {
+    fn from(x: mlmd::metadata::ExecutionType) -> Self {
+        Self {
+            id: x.id.get(),
+            name: x.name,
+            properties: x
+                .properties
+                .into_iter()
+                .map(|(k, v)| (k, PropertyType::from(v)))
+                .collect(),
+        }
+    }
+}
+
+impl From<mlmd::metadata::ContextType> for Type {
+    fn from(x: mlmd::metadata::ContextType) -> Self {
+        Self {
+            id: x.id.get(),
+            name: x.name,
+            properties: x
+                .properties
+                .into_iter()
+                .map(|(k, v)| (k, PropertyType::from(v)))
+                .collect(),
+        }
+    }
+}
+
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum PropertyType {

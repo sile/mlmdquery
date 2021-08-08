@@ -13,9 +13,9 @@ enum CountOpt {
     Artifacts,
     ArtifactTypes(mlmdquery::artifact_types::ArtifactTypesOpt),
     Executions,
-    ExecutionTypes,
+    ExecutionTypes(mlmdquery::execution_types::ExecutionTypesOpt),
     Contexts,
-    ContextTypes,
+    ContextTypes(mlmdquery::context_types::ContextTypesOpt),
     Events,
 }
 
@@ -25,9 +25,9 @@ enum GetOpt {
     Artifacts,
     ArtifactTypes(mlmdquery::artifact_types::ArtifactTypesOpt),
     Executions,
-    ExecutionTypes,
+    ExecutionTypes(mlmdquery::execution_types::ExecutionTypesOpt),
     Contexts,
-    ContextTypes,
+    ContextTypes(mlmdquery::context_types::ContextTypesOpt),
     Events,
 }
 
@@ -37,6 +37,10 @@ async fn main() -> anyhow::Result<()> {
     match opt {
         Opt::Count(CountOpt::ArtifactTypes(opt)) => print_json(opt.count().await?)?,
         Opt::Get(GetOpt::ArtifactTypes(opt)) => print_json(opt.get().await?)?,
+        Opt::Count(CountOpt::ExecutionTypes(opt)) => print_json(opt.count().await?)?,
+        Opt::Get(GetOpt::ExecutionTypes(opt)) => print_json(opt.get().await?)?,
+        Opt::Count(CountOpt::ContextTypes(opt)) => print_json(opt.count().await?)?,
+        Opt::Get(GetOpt::ContextTypes(opt)) => print_json(opt.get().await?)?,
         _ => todo!(),
     }
     Ok(())
