@@ -1,6 +1,11 @@
 mlmdquery
 =========
 
+[![mlmdquery](https://img.shields.io/crates/v/mlmdquery.svg)](https://crates.io/crates/mlmdquery)
+[![Documentation](https://docs.rs/mlmdquery/badge.svg)](https://docs.rs/mlmdquery)
+[![Actions Status](https://github.com/sile/mlmdquery/workflows/CI/badge.svg)](https://github.com/sile/mlmdquery/actions)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A command-line tool to query the contents of an [ml-metadata](https://github.com/google/ml-metadata) DB.
 
 Features:

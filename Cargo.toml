@@ -9,9 +9,6 @@ repository = "https://github.com/sile/mlmdquery"
 readme = "README.md"
 license = "MIT"
 
-[badges]
-coveralls = {repository = "sile/mlmdquery"}
-
 [dependencies]
 anyhow = "1"
 structopt = "0.3"
