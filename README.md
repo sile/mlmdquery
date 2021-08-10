@@ -175,3 +175,8 @@ SUBCOMMANDS:
     executions         Gets executions
     help               Prints this message or the help of the given subcommand(s)
 ```
+
+How to build a static binary?
+-----------------------------
+
+Please use [rust-musl-builder](https://github.com/emk/rust-musl-builder).
