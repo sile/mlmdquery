@@ -1,37 +1,49 @@
+//! `$ mlmdquery {get,count} contexts` implementation.
 use crate::serialize::Context;
 use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 
+/// `$ mlmdquery {get,count} contexts` common options.
 #[derive(Debug, structopt::StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 pub struct CommonContextsOpt {
-    #[structopt(long, env = "MLMD_DB")]
+    /// Database URL.
+    #[structopt(long, env = "MLMD_DB", hide_env_values = true)]
     pub db: String,
 
+    /// Target context IDs.
     #[structopt(long = "id")]
     pub ids: Vec<i32>,
 
+    /// Target context name.
     #[structopt(long, requires("type-name"))]
     pub name: Option<String>,
 
+    /// Target context type.
     #[structopt(long = "type")]
     pub type_name: Option<String>,
 
+    /// Artifact ID attributed to target contexts.
     #[structopt(long)]
     pub artifact: Option<i32>,
 
+    /// Execution ID associated to target contexts.
     #[structopt(long)]
     pub execution: Option<i32>,
 
+    /// Start of creation time (UNIX timestamp seconds).
     #[structopt(long)]
     pub ctime_start: Option<f64>,
 
+    /// End of creation time (UNIX timestamp seconds).
     #[structopt(long)]
     pub ctime_end: Option<f64>,
 
+    /// Start of update time (UNIX timestamp seconds).
     #[structopt(long)]
     pub mtime_start: Option<f64>,
 
+    /// End of update time (UNIX timestamp seconds).
     #[structopt(long)]
     pub mtime_end: Option<f64>,
 }
@@ -82,7 +94,9 @@ impl CommonContextsOpt {
     }
 }
 
+/// Fields that can be used to sort a search result.
 #[derive(Debug, Clone, Copy)]
+#[allow(missing_docs)]
 pub enum ContextOrderByField {
     Id,
     Name,
@@ -91,7 +105,7 @@ pub enum ContextOrderByField {
 }
 
 impl ContextOrderByField {
-    pub const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
+    const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
 }
 
 impl std::str::FromStr for ContextOrderByField {
@@ -119,13 +133,16 @@ impl From<ContextOrderByField> for mlmd::requests::ContextOrderByField {
     }
 }
 
+/// `$ mlmdquery count contexts` options.
 #[derive(Debug, structopt::StructOpt)]
 pub struct CountContextsOpt {
+    /// Common options.
     #[structopt(flatten)]
     pub common: CommonContextsOpt,
 }
 
 impl CountContextsOpt {
+    /// `$ mlmdquery count contexts` implementation.
     pub async fn count(&self) -> anyhow::Result<usize> {
         let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
         let n = self.common.request(&mut store).count().await?;
@@ -133,25 +150,32 @@ impl CountContextsOpt {
     }
 }
 
+/// `$ mlmdquery get contexts` options.
 #[derive(Debug, structopt::StructOpt)]
 pub struct GetContextsOpt {
+    /// Common options.
     #[structopt(flatten)]
     pub common: CommonContextsOpt,
 
+    /// Field to be used to sort a search result.
     #[structopt(long, default_value="id", possible_values = ContextOrderByField::POSSIBLE_VALUES)]
     pub order_by: ContextOrderByField,
 
+    /// If specified, the search results will be sorted in ascending order.
     #[structopt(long)]
     pub asc: bool,
 
+    /// Maximum number of artifacts in a search result.
     #[structopt(long, default_value = "100")]
     pub limit: usize,
 
+    /// Number of artifacts to be skipped from a search result.
     #[structopt(long, default_value = "0")]
     pub offset: usize,
 }
 
 impl GetContextsOpt {
+    /// `$ mlmdquery get context` implementation.
     pub async fn get(&self) -> anyhow::Result<Vec<Context>> {
         let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
         let contexts = self

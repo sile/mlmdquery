@@ -1,15 +1,20 @@
+//! `$ mlmdquery {get,count} events` implementation.
 use crate::serialize::Event;
 use std::collections::BTreeMap;
 
+/// `$ mlmdquery {get,count} events` options.
 #[derive(Debug, structopt::StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 pub struct CommonEventsOpt {
-    #[structopt(long, env = "MLMD_DB")]
+    /// Database URL.
+    #[structopt(long, env = "MLMD_DB", hide_env_values = true)]
     pub db: String,
 
+    /// Artifact ID relating to target events.
     #[structopt(long)]
     pub artifact: Option<i32>,
 
+    /// Execution ID relating to target events.
     #[structopt(long)]
     pub execution: Option<i32>,
 }
@@ -30,13 +35,16 @@ impl CommonEventsOpt {
     }
 }
 
+/// `$ mlmdquery count events` options.
 #[derive(Debug, structopt::StructOpt)]
 pub struct CountEventsOpt {
+    /// Common options.
     #[structopt(flatten)]
     pub common: CommonEventsOpt,
 }
 
 impl CountEventsOpt {
+    /// `$ mlmdquery count events` implementation.
     pub async fn count(&self) -> anyhow::Result<usize> {
         let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
         let n = self.common.request(&mut store).count().await?;
@@ -44,22 +52,28 @@ impl CountEventsOpt {
     }
 }
 
+/// `$ mlmdquery get events` options.
 #[derive(Debug, structopt::StructOpt)]
 pub struct GetEventsOpt {
+    /// Common options.
     #[structopt(flatten)]
     pub common: CommonEventsOpt,
 
+    /// Maximum number of artifacts in a search result.
     #[structopt(long, default_value = "100")]
     pub limit: usize,
 
+    /// Number of artifacts to be skipped from a search result.
     #[structopt(long, default_value = "0")]
     pub offset: usize,
 
+    /// If specified, the search results will be sorted in ascending order.
     #[structopt(long)]
     pub asc: bool,
 }
 
 impl GetEventsOpt {
+    /// `$ mlmdquery get events` implementation.
     pub async fn get(&self) -> anyhow::Result<Vec<Event>> {
         let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
         let events = self

@@ -1,17 +1,22 @@
+//! `$ mlmdquery {get,count} context-types` implementation.
 use crate::serialize::Type;
 
+/// `$ mlmdquery {get,count} context-types` options.
 #[derive(Debug, structopt::StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 pub struct ContextTypesOpt {
-    #[structopt(long, env = "MLMD_DB")]
+    /// Database URL.
+    #[structopt(long, env = "MLMD_DB", hide_env_values = true)]
     pub db: String,
 }
 
 impl ContextTypesOpt {
+    /// `$ mlmdquery count context-types` implementation.
     pub async fn count(&self) -> anyhow::Result<usize> {
         Ok(self.get().await?.len())
     }
 
+    /// `$ mlmdquery get context-types` implementation.
     pub async fn get(&self) -> anyhow::Result<Vec<Type>> {
         let mut store = mlmd::MetadataStore::connect(&self.db).await?;
         let types = store.get_context_types().execute().await?;

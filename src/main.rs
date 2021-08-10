@@ -3,31 +3,60 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum Opt {
+    /// Counts artifacts/executions/contexts/events.
     Count(CountOpt),
+
+    /// Gets artifacts/executions/contexts/events.
     Get(GetOpt),
 }
 
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum CountOpt {
+    /// Counts artifacts.
     Artifacts(mlmdquery::artifacts::CountArtifactsOpt),
+
+    /// Counts artifact types.
     ArtifactTypes(mlmdquery::artifact_types::ArtifactTypesOpt),
+
+    /// Counts executions.
     Executions(mlmdquery::executions::CountExecutionsOpt),
+
+    /// Counts execution types.
     ExecutionTypes(mlmdquery::execution_types::ExecutionTypesOpt),
+
+    /// Counts contexts.
     Contexts(mlmdquery::contexts::CountContextsOpt),
+
+    /// Counts context types.
     ContextTypes(mlmdquery::context_types::ContextTypesOpt),
+
+    /// Counts events.
     Events(mlmdquery::events::CountEventsOpt),
 }
 
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum GetOpt {
+    /// Gets artifacts.
     Artifacts(mlmdquery::artifacts::GetArtifactsOpt),
+
+    /// Gets artifact types.
     ArtifactTypes(mlmdquery::artifact_types::ArtifactTypesOpt),
+
+    /// Gets executions.
     Executions(mlmdquery::executions::GetExecutionsOpt),
+
+    /// Gets execution types.
     ExecutionTypes(mlmdquery::execution_types::ExecutionTypesOpt),
+
+    /// Gets contexts.
     Contexts(mlmdquery::contexts::GetContextsOpt),
+
+    /// Gets context types.
     ContextTypes(mlmdquery::context_types::ContextTypesOpt),
+
+    /// Gets events.
     Events(mlmdquery::events::GetEventsOpt),
 }
 

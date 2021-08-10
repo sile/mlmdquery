@@ -1,37 +1,49 @@
+//! `$ mlmdquery {get,count} artifacts` implementation.
 use crate::serialize::Artifact;
 use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 
+/// `$ mlmdquery {get,count} artifacts` common options.
 #[derive(Debug, structopt::StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 pub struct CommonArtifactsOpt {
-    #[structopt(long, env = "MLMD_DB")]
+    /// Database URL.
+    #[structopt(long, env = "MLMD_DB", hide_env_values = true)]
     pub db: String,
 
+    /// Target artifact IDs.
     #[structopt(long = "id")]
     pub ids: Vec<i32>,
 
+    /// Target artifact name.
     #[structopt(long, requires("type-name"))]
     pub name: Option<String>,
 
+    /// Target artifact type.
     #[structopt(long = "type")]
     pub type_name: Option<String>,
 
+    /// Target artifact URI.
     #[structopt(long)]
     pub uri: Option<String>,
 
+    /// Context ID to which target artifacts belong.
     #[structopt(long)]
     pub context: Option<i32>,
 
+    /// Start of creation time (UNIX timestamp seconds).
     #[structopt(long)]
     pub ctime_start: Option<f64>,
 
+    /// End of creation time (UNIX timestamp seconds).
     #[structopt(long)]
     pub ctime_end: Option<f64>,
 
+    /// Start of update time (UNIX timestamp seconds).
     #[structopt(long)]
     pub mtime_start: Option<f64>,
 
+    /// End of update time (UNIX timestamp seconds).
     #[structopt(long)]
     pub mtime_end: Option<f64>,
 }
@@ -87,7 +99,9 @@ impl CommonArtifactsOpt {
     }
 }
 
+/// Fields that can be used to sort a search result.
 #[derive(Debug, Clone, Copy)]
+#[allow(missing_docs)]
 pub enum ArtifactOrderByField {
     Id,
     Name,
@@ -96,7 +110,7 @@ pub enum ArtifactOrderByField {
 }
 
 impl ArtifactOrderByField {
-    pub const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
+    const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
 }
 
 impl std::str::FromStr for ArtifactOrderByField {
@@ -124,13 +138,16 @@ impl From<ArtifactOrderByField> for mlmd::requests::ArtifactOrderByField {
     }
 }
 
+/// `$ mlmdquery count artifacts` options.
 #[derive(Debug, structopt::StructOpt)]
 pub struct CountArtifactsOpt {
+    /// Common options.
     #[structopt(flatten)]
     pub common: CommonArtifactsOpt,
 }
 
 impl CountArtifactsOpt {
+    /// `$ mlmdquery count artifacts` implementation.
     pub async fn count(&self) -> anyhow::Result<usize> {
         let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
         let n = self.common.request(&mut store).count().await?;
@@ -138,25 +155,32 @@ impl CountArtifactsOpt {
     }
 }
 
+/// `$ mlmdquery get artifacts` options.
 #[derive(Debug, structopt::StructOpt)]
 pub struct GetArtifactsOpt {
+    /// Common options.
     #[structopt(flatten)]
     pub common: CommonArtifactsOpt,
 
+    /// Field to be used to sort a search result.
     #[structopt(long, default_value="id", possible_values = ArtifactOrderByField::POSSIBLE_VALUES)]
     pub order_by: ArtifactOrderByField,
 
+    /// If specified, the search results will be sorted in ascending order.
     #[structopt(long)]
     pub asc: bool,
 
+    /// Maximum number of artifacts in a search result.
     #[structopt(long, default_value = "100")]
     pub limit: usize,
 
+    /// Number of artifacts to be skipped from a search result.
     #[structopt(long, default_value = "0")]
     pub offset: usize,
 }
 
 impl GetArtifactsOpt {
+    /// `$ mlmdquery get artifacts` implementation.
     pub async fn get(&self) -> anyhow::Result<Vec<Artifact>> {
         let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
         let artifacts = self
