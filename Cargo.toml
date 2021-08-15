@@ -1,6 +1,6 @@
 [package]
 name = "mlmdquery"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 mlauthors = ["Takeru Ohta <phjgt308@gmail.com>"]
 description = "A command-line tool to query the contents of an ml-metadata DB."
