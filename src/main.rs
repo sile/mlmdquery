@@ -68,6 +68,9 @@ enum GetOpt {
 enum GraphOpt {
     /// Generates a graph showing the lineage of an artifact.
     Lineage(mlmdquery::lineage::GraphLineageOpt),
+
+    /// Generates a graph showing the input and output of an execution.
+    Io(mlmdquery::io::GraphIoOpt),
 }
 
 #[tokio::main]
@@ -89,6 +92,7 @@ async fn main() -> anyhow::Result<()> {
         Opt::Count(CountOpt::Events(opt)) => print_json(opt.count().await?)?,
         Opt::Get(GetOpt::Events(opt)) => print_json(opt.get().await?)?,
         Opt::Graph(GraphOpt::Lineage(opt)) => opt.graph(&mut std::io::stdout().lock()).await?,
+        Opt::Graph(GraphOpt::Io(opt)) => opt.graph(&mut std::io::stdout().lock()).await?,
     }
     Ok(())
 }

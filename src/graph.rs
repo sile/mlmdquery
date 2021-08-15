@@ -8,13 +8,13 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use std::io::Write;
 use tinytemplate::TinyTemplate;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum NodeId {
     Artifact(ArtifactId),
     Execution(ExecutionId),
 }
 
-impl std::fmt::Debug for NodeId {
+impl std::fmt::Display for NodeId {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::Artifact(x) => write!(f, "{}@artifact", x.get()),
@@ -254,8 +254,8 @@ impl Graph {
         let execution_type_count = types.len() - artifact_type_count;
 
         let gradient = Gradient::new(vec![
-            Srgb::new(0.5, 0.5, 0.5).into_linear(),
             Srgb::new(1.0, 1.0, 1.0).into_linear(),
+            Srgb::new(0.5, 0.5, 0.5).into_linear(),
         ]);
         let colors = types
             .iter()
@@ -308,7 +308,7 @@ impl Graph {
             writeln!(
                 writer,
                 "  {:?} [label={:?},shape={:?},style={:?},tooltip={:?},fillcolor={:?},URL={:?}];",
-                node.id(),
+                node.id().to_string(),
                 node.label(),
                 node.shape(),
                 node.style(self.origin),
@@ -322,8 +322,8 @@ impl Graph {
             writeln!(
                 writer,
                 "  {:?} -> {:?} [label={:?}];",
-                self.nodes[&edge.from_node()].id(),
-                self.nodes[&edge.to_node()].id(),
+                self.nodes[&edge.from_node()].id().to_string(),
+                self.nodes[&edge.to_node()].id().to_string(),
                 edge.label()?
             )?;
         }
