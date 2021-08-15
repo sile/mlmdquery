@@ -195,25 +195,7 @@ impl GetArtifactsOpt {
         let artifact_types = self.get_artifact_types(&mut store, &artifacts).await?;
         Ok(artifacts
             .into_iter()
-            .map(|x| Artifact {
-                id: x.id.get(),
-                name: x.name,
-                type_name: artifact_types[&x.type_id].clone(),
-                uri: x.uri,
-                state: x.state.into(),
-                ctime: x.create_time_since_epoch.as_secs_f64(),
-                mtime: x.last_update_time_since_epoch.as_secs_f64(),
-                properties: x
-                    .properties
-                    .into_iter()
-                    .map(|(k, v)| (k, v.into()))
-                    .collect(),
-                custom_properties: x
-                    .custom_properties
-                    .into_iter()
-                    .map(|(k, v)| (k, v.into()))
-                    .collect(),
-            })
+            .map(|x| Artifact::new(artifact_types[&x.type_id].clone(), x))
             .collect())
     }
 

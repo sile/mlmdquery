@@ -8,6 +8,9 @@ enum Opt {
 
     /// Gets artifacts/executions/contexts/events.
     Get(GetOpt),
+
+    /// Generates graphs in DOT language.
+    Graph(GraphOpt),
 }
 
 #[derive(Debug, StructOpt)]
@@ -60,6 +63,13 @@ enum GetOpt {
     Events(mlmdquery::events::GetEventsOpt),
 }
 
+#[derive(Debug, StructOpt)]
+#[structopt(rename_all = "kebab-case")]
+enum GraphOpt {
+    /// Generates a graph showing the lineage of an artifact.
+    Lineage(mlmdquery::lineage::GraphLineageOpt),
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let opt = Opt::from_args();
@@ -78,6 +88,7 @@ async fn main() -> anyhow::Result<()> {
         Opt::Get(GetOpt::ContextTypes(opt)) => print_json(opt.get().await?)?,
         Opt::Count(CountOpt::Events(opt)) => print_json(opt.count().await?)?,
         Opt::Get(GetOpt::Events(opt)) => print_json(opt.get().await?)?,
+        Opt::Graph(GraphOpt::Lineage(opt)) => opt.graph(&mut std::io::stdout().lock()).await?,
     }
     Ok(())
 }

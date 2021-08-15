@@ -1,4 +1,6 @@
+use chrono::{DateTime, Local};
 use std::collections::BTreeMap;
+use std::time::SystemTime;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Type {
@@ -150,6 +152,68 @@ pub struct Artifact {
     pub custom_properties: BTreeMap<String, PropertyValue>,
 }
 
+impl Artifact {
+    pub fn new(type_name: String, x: mlmd::metadata::Artifact) -> Self {
+        Self {
+            id: x.id.get(),
+            name: x.name,
+            type_name,
+            uri: x.uri,
+            state: x.state.into(),
+            ctime: x.create_time_since_epoch.as_secs_f64(),
+            mtime: x.last_update_time_since_epoch.as_secs_f64(),
+            properties: x
+                .properties
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+            custom_properties: x
+                .custom_properties
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+        }
+    }
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct ArtifactNode {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(rename = "type")]
+    pub type_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+    pub state: ArtifactState,
+    pub time: DateTime<Local>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub properties: BTreeMap<String, PropertyValue>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub custom_properties: BTreeMap<String, PropertyValue>,
+}
+
+impl ArtifactNode {
+    pub fn new(type_name: String, x: mlmd::metadata::Artifact) -> Self {
+        Self {
+            name: x.name,
+            type_name,
+            uri: x.uri,
+            state: x.state.into(),
+            time: DateTime::from(SystemTime::UNIX_EPOCH + x.last_update_time_since_epoch),
+            properties: x
+                .properties
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+            custom_properties: x
+                .custom_properties
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ArtifactState {
@@ -205,6 +269,41 @@ pub struct Execution {
     pub mtime: f64,
     pub properties: BTreeMap<String, PropertyValue>,
     pub custom_properties: BTreeMap<String, PropertyValue>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct ExecutionNode {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(rename = "type")]
+    pub type_name: String,
+    pub state: ExecutionState,
+    pub time: DateTime<Local>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub properties: BTreeMap<String, PropertyValue>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub custom_properties: BTreeMap<String, PropertyValue>,
+}
+
+impl ExecutionNode {
+    pub fn new(type_name: String, x: mlmd::metadata::Execution) -> Self {
+        Self {
+            name: x.name,
+            type_name,
+            state: x.last_known_state.into(),
+            time: DateTime::from(SystemTime::UNIX_EPOCH + x.last_update_time_since_epoch),
+            properties: x
+                .properties
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+            custom_properties: x
+                .custom_properties
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
