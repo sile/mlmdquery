@@ -24,12 +24,12 @@ pub struct CommonContextsOpt {
     pub type_name: Option<String>,
 
     /// Artifact ID attributed to target contexts.
-    #[structopt(long)]
-    pub artifact: Option<i32>,
+    #[structopt(long = "artifact")]
+    pub artifacts: Vec<i32>,
 
     /// Execution ID associated to target contexts.
-    #[structopt(long)]
-    pub execution: Option<i32>,
+    #[structopt(long = "execution")]
+    pub executions: Vec<i32>,
 
     /// Start of creation time (UNIX timestamp seconds).
     #[structopt(long)]
@@ -67,12 +67,18 @@ impl CommonContextsOpt {
             }
             _ => {}
         }
-        if let Some(x) = self.artifact {
-            request = request.artifact(mlmd::metadata::ArtifactId::new(x));
-        }
-        if let Some(x) = self.execution {
-            request = request.execution(mlmd::metadata::ExecutionId::new(x));
-        }
+        request = request.artifacts(
+            self.artifacts
+                .iter()
+                .copied()
+                .map(mlmd::metadata::ArtifactId::new),
+        );
+        request = request.executions(
+            self.executions
+                .iter()
+                .copied()
+                .map(mlmd::metadata::ExecutionId::new),
+        );
         request = match (self.ctime_start, self.ctime_end) {
             (None, None) => request,
             (Some(s), None) => request.create_time(Duration::from_secs_f64(s)..),
