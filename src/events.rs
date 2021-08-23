@@ -45,9 +45,8 @@ pub struct CountEventsOpt {
 
 impl CountEventsOpt {
     /// `$ mlmdquery count events` implementation.
-    pub async fn count(&self) -> anyhow::Result<usize> {
-        let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
-        let n = self.common.request(&mut store).count().await?;
+    pub async fn count(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<usize> {
+        let n = self.common.request(store).count().await?;
         Ok(n)
     }
 }
@@ -74,11 +73,10 @@ pub struct GetEventsOpt {
 
 impl GetEventsOpt {
     /// `$ mlmdquery get events` implementation.
-    pub async fn get(&self) -> anyhow::Result<Vec<Event>> {
-        let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
+    pub async fn get(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<Vec<Event>> {
         let events = self
             .common
-            .request(&mut store)
+            .request(store)
             .limit(self.limit)
             .offset(self.offset)
             .order_by(mlmd::requests::EventOrderByField::CreateTime, self.asc)
@@ -86,10 +84,10 @@ impl GetEventsOpt {
             .await?;
 
         let artifact_types = self
-            .get_artifact_types(&mut store, events.iter().map(|x| x.artifact_id))
+            .get_artifact_types(store, events.iter().map(|x| x.artifact_id))
             .await?;
         let execution_types = self
-            .get_execution_types(&mut store, events.iter().map(|x| x.execution_id))
+            .get_execution_types(store, events.iter().map(|x| x.execution_id))
             .await?;
         Ok(events
             .into_iter()

@@ -148,9 +148,8 @@ pub struct CountArtifactsOpt {
 
 impl CountArtifactsOpt {
     /// `$ mlmdquery count artifacts` implementation.
-    pub async fn count(&self) -> anyhow::Result<usize> {
-        let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
-        let n = self.common.request(&mut store).count().await?;
+    pub async fn count(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<usize> {
+        let n = self.common.request(store).count().await?;
         Ok(n)
     }
 }
@@ -181,18 +180,17 @@ pub struct GetArtifactsOpt {
 
 impl GetArtifactsOpt {
     /// `$ mlmdquery get artifacts` implementation.
-    pub async fn get(&self) -> anyhow::Result<Vec<Artifact>> {
-        let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
+    pub async fn get(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<Vec<Artifact>> {
         let artifacts = self
             .common
-            .request(&mut store)
+            .request(store)
             .limit(self.limit)
             .offset(self.offset)
             .order_by(self.order_by.into(), self.asc)
             .execute()
             .await?;
 
-        let artifact_types = self.get_artifact_types(&mut store, &artifacts).await?;
+        let artifact_types = self.get_artifact_types(store, &artifacts).await?;
         Ok(artifacts
             .into_iter()
             .map(|x| Artifact::new(artifact_types[&x.type_id].clone(), x))

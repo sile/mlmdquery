@@ -141,9 +141,8 @@ pub struct CountExecutionsOpt {
 
 impl CountExecutionsOpt {
     /// `$ mlmdquery count executions` implementation.
-    pub async fn count(&self) -> anyhow::Result<usize> {
-        let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
-        let n = self.common.request(&mut store).count().await?;
+    pub async fn count(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<usize> {
+        let n = self.common.request(store).count().await?;
         Ok(n)
     }
 }
@@ -174,18 +173,17 @@ pub struct GetExecutionsOpt {
 
 impl GetExecutionsOpt {
     /// `$ mlmdquery get executions` implementation.
-    pub async fn get(&self) -> anyhow::Result<Vec<Execution>> {
-        let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
+    pub async fn get(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<Vec<Execution>> {
         let executions = self
             .common
-            .request(&mut store)
+            .request(store)
             .limit(self.limit)
             .offset(self.offset)
             .order_by(self.order_by.into(), self.asc)
             .execute()
             .await?;
 
-        let execution_types = self.get_execution_types(&mut store, &executions).await?;
+        let execution_types = self.get_execution_types(store, &executions).await?;
         Ok(executions
             .into_iter()
             .map(|x| Execution {

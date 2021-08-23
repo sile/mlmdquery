@@ -149,9 +149,8 @@ pub struct CountContextsOpt {
 
 impl CountContextsOpt {
     /// `$ mlmdquery count contexts` implementation.
-    pub async fn count(&self) -> anyhow::Result<usize> {
-        let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
-        let n = self.common.request(&mut store).count().await?;
+    pub async fn count(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<usize> {
+        let n = self.common.request(store).count().await?;
         Ok(n)
     }
 }
@@ -182,18 +181,17 @@ pub struct GetContextsOpt {
 
 impl GetContextsOpt {
     /// `$ mlmdquery get context` implementation.
-    pub async fn get(&self) -> anyhow::Result<Vec<Context>> {
-        let mut store = mlmd::MetadataStore::connect(&self.common.db).await?;
+    pub async fn get(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<Vec<Context>> {
         let contexts = self
             .common
-            .request(&mut store)
+            .request(store)
             .limit(self.limit)
             .offset(self.offset)
             .order_by(self.order_by.into(), self.asc)
             .execute()
             .await?;
 
-        let context_types = self.get_context_types(&mut store, &contexts).await?;
+        let context_types = self.get_context_types(store, &contexts).await?;
         Ok(contexts
             .into_iter()
             .map(|x| Context {

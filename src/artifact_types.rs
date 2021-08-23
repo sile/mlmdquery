@@ -12,13 +12,12 @@ pub struct ArtifactTypesOpt {
 
 impl ArtifactTypesOpt {
     /// `$ mlmdquery count artifact-types` implementation.
-    pub async fn count(&self) -> anyhow::Result<usize> {
-        Ok(self.get().await?.len())
+    pub async fn count(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<usize> {
+        Ok(self.get(store).await?.len())
     }
 
     /// `$ mlmdquery get artifact-types` implementation.
-    pub async fn get(&self) -> anyhow::Result<Vec<Type>> {
-        let mut store = mlmd::MetadataStore::connect(&self.db).await?;
+    pub async fn get(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<Vec<Type>> {
         let types = store.get_artifact_types().execute().await?;
         Ok(types.into_iter().map(Type::from).collect())
     }
