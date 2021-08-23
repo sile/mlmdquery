@@ -3,19 +3,23 @@ use crate::serialize::Event;
 use std::collections::BTreeMap;
 
 /// `$ mlmdquery {get,count} events` options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
+#[serde(rename_all = "kebab-case")]
 pub struct CommonEventsOpt {
     /// Database URL.
     #[structopt(long, env = "MLMD_DB", hide_env_values = true)]
+    #[serde(skip)]
     pub db: String,
 
     /// Artifact ID relating to target events.
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub artifact: Option<i32>,
 
     /// Execution ID relating to target events.
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub execution: Option<i32>,
 }
 
@@ -36,10 +40,11 @@ impl CommonEventsOpt {
 }
 
 /// `$ mlmdquery count events` options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 pub struct CountEventsOpt {
     /// Common options.
     #[structopt(flatten)]
+    #[serde(flatten)]
     pub common: CommonEventsOpt,
 }
 
@@ -52,26 +57,35 @@ impl CountEventsOpt {
 }
 
 /// `$ mlmdquery get events` options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct GetEventsOpt {
     /// Common options.
     #[structopt(flatten)]
+    #[serde(flatten)]
     pub common: CommonEventsOpt,
 
     /// Maximum number of artifacts in a search result.
     #[structopt(long, default_value = "100")]
+    #[serde(default = "GetEventsOpt::limit_default")]
     pub limit: usize,
 
     /// Number of artifacts to be skipped from a search result.
     #[structopt(long, default_value = "0")]
+    #[serde(default)]
     pub offset: usize,
 
     /// If specified, the search results will be sorted in ascending order.
     #[structopt(long)]
+    #[serde(default)]
     pub asc: bool,
 }
 
 impl GetEventsOpt {
+    fn limit_default() -> usize {
+        100
+    }
+
     /// `$ mlmdquery get events` implementation.
     pub async fn get(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<Vec<Event>> {
         let events = self

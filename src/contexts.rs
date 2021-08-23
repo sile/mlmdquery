@@ -4,47 +4,58 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 
 /// `$ mlmdquery {get,count} contexts` common options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
+#[serde(rename_all = "kebab-case")]
 pub struct CommonContextsOpt {
     /// Database URL.
     #[structopt(long, env = "MLMD_DB", hide_env_values = true)]
+    #[serde(skip)]
     pub db: String,
 
     /// Target context IDs.
     #[structopt(long = "id")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ids: Vec<i32>,
 
     /// Target context name.
     #[structopt(long, requires("type-name"))]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
     /// Target context type.
     #[structopt(long = "type")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub type_name: Option<String>,
 
     /// Artifact ID attributed to target contexts.
     #[structopt(long = "artifact")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub artifacts: Vec<i32>,
 
     /// Execution ID associated to target contexts.
     #[structopt(long = "execution")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub executions: Vec<i32>,
 
     /// Start of creation time (UNIX timestamp seconds).
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ctime_start: Option<f64>,
 
     /// End of creation time (UNIX timestamp seconds).
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ctime_end: Option<f64>,
 
     /// Start of update time (UNIX timestamp seconds).
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mtime_start: Option<f64>,
 
     /// End of update time (UNIX timestamp seconds).
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mtime_end: Option<f64>,
 }
 
@@ -101,17 +112,26 @@ impl CommonContextsOpt {
 }
 
 /// Fields that can be used to sort a search result.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum ContextOrderByField {
     Id,
     Name,
+    #[serde(rename = "ctime")]
     CreateTime,
+    #[serde(rename = "mtime")]
     UpdateTime,
 }
 
 impl ContextOrderByField {
     const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
+}
+
+impl Default for ContextOrderByField {
+    fn default() -> Self {
+        Self::Id
+    }
 }
 
 impl std::str::FromStr for ContextOrderByField {
@@ -140,10 +160,11 @@ impl From<ContextOrderByField> for mlmd::requests::ContextOrderByField {
 }
 
 /// `$ mlmdquery count contexts` options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 pub struct CountContextsOpt {
     /// Common options.
     #[structopt(flatten)]
+    #[serde(flatten)]
     pub common: CommonContextsOpt,
 }
 
@@ -156,30 +177,40 @@ impl CountContextsOpt {
 }
 
 /// `$ mlmdquery get contexts` options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct GetContextsOpt {
     /// Common options.
     #[structopt(flatten)]
+    #[serde(flatten)]
     pub common: CommonContextsOpt,
 
     /// Field to be used to sort a search result.
     #[structopt(long, default_value="id", possible_values = ContextOrderByField::POSSIBLE_VALUES)]
+    #[serde(default)]
     pub order_by: ContextOrderByField,
 
     /// If specified, the search results will be sorted in ascending order.
     #[structopt(long)]
+    #[serde(default)]
     pub asc: bool,
 
     /// Maximum number of artifacts in a search result.
     #[structopt(long, default_value = "100")]
+    #[serde(default = "GetContextsOpt::limit_default")]
     pub limit: usize,
 
     /// Number of artifacts to be skipped from a search result.
     #[structopt(long, default_value = "0")]
+    #[serde(default)]
     pub offset: usize,
 }
 
 impl GetContextsOpt {
+    fn limit_default() -> usize {
+        100
+    }
+
     /// `$ mlmdquery get context` implementation.
     pub async fn get(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<Vec<Context>> {
         let contexts = self

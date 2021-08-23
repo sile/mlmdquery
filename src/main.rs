@@ -11,8 +11,9 @@ enum Opt {
     Graph(GraphOpt),
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
+#[serde(rename_all = "kebab-case")]
 enum BatchableOpt {
     /// Counts artifacts/executions/contexts/events.
     Count(CountOpt),
@@ -62,8 +63,9 @@ impl BatchableOpt {
     }
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
+#[serde(rename_all = "kebab-case")]
 enum CountOpt {
     /// Counts artifacts.
     Artifacts(mlmdquery::artifacts::CountArtifactsOpt),
@@ -87,8 +89,9 @@ enum CountOpt {
     Events(mlmdquery::events::CountEventsOpt),
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
+#[serde(rename_all = "kebab-case")]
 enum GetOpt {
     /// Gets artifacts.
     Artifacts(mlmdquery::artifacts::GetArtifactsOpt),

@@ -4,43 +4,53 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 
 /// `$ mlmdquery {get,count} executions` common options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[structopt(rename_all = "kebab-case")]
 #[structopt(rename_all = "kebab-case")]
 pub struct CommonExecutionsOpt {
     /// Database URL.
     #[structopt(long, env = "MLMD_DB", hide_env_values = true)]
+    #[serde(skip)]
     pub db: String,
 
     /// Target execution IDs.
     #[structopt(long = "id")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ids: Vec<i32>,
 
     /// Target execution name.
     #[structopt(long, requires("type-name"))]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
     /// Target execution type.
     #[structopt(long = "type")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub type_name: Option<String>,
 
     /// Context ID to which target executions belong.
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub context: Option<i32>,
 
     /// Start of creation time (UNIX timestamp seconds).
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ctime_start: Option<f64>,
 
     /// End of creation time (UNIX timestamp seconds).
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ctime_end: Option<f64>,
 
     /// Start of update time (UNIX timestamp seconds).
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mtime_start: Option<f64>,
 
     /// End of update time (UNIX timestamp seconds).
     #[structopt(long)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mtime_end: Option<f64>,
 }
 
@@ -93,17 +103,26 @@ impl CommonExecutionsOpt {
 }
 
 /// Fields that can be used to sort a search result.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum ExecutionOrderByField {
     Id,
     Name,
+    #[serde(rename = "ctime")]
     CreateTime,
+    #[serde(rename = "mtime")]
     UpdateTime,
 }
 
 impl ExecutionOrderByField {
     const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
+}
+
+impl Default for ExecutionOrderByField {
+    fn default() -> Self {
+        Self::Id
+    }
 }
 
 impl std::str::FromStr for ExecutionOrderByField {
@@ -132,10 +151,11 @@ impl From<ExecutionOrderByField> for mlmd::requests::ExecutionOrderByField {
 }
 
 /// `$ mlmdquery count executions` options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 pub struct CountExecutionsOpt {
     /// Common options.
     #[structopt(flatten)]
+    #[serde(flatten)]
     pub common: CommonExecutionsOpt,
 }
 
@@ -148,30 +168,40 @@ impl CountExecutionsOpt {
 }
 
 /// `$ mlmdquery get executions` options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct GetExecutionsOpt {
     /// Common options.
     #[structopt(flatten)]
+    #[serde(flatten)]
     pub common: CommonExecutionsOpt,
 
     /// Field to be used to sort a search result.
     #[structopt(long, default_value="id", possible_values = ExecutionOrderByField::POSSIBLE_VALUES)]
+    #[serde(default)]
     pub order_by: ExecutionOrderByField,
 
     /// If specified, the search results will be sorted in ascending order.
     #[structopt(long)]
+    #[serde(default)]
     pub asc: bool,
 
     /// Maximum number of artifacts in a search result.
     #[structopt(long, default_value = "100")]
+    #[serde(default = "GetExecutionsOpt::limit_default")]
     pub limit: usize,
 
     /// Number of artifacts to be skipped from a search result.
     #[structopt(long, default_value = "0")]
+    #[serde(default)]
     pub offset: usize,
 }
 
 impl GetExecutionsOpt {
+    fn limit_default() -> usize {
+        100
+    }
+
     /// `$ mlmdquery get executions` implementation.
     pub async fn get(&self, store: &mut mlmd::MetadataStore) -> anyhow::Result<Vec<Execution>> {
         let executions = self

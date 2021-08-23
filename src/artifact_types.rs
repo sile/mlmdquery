@@ -2,11 +2,12 @@
 use crate::serialize::Type;
 
 /// `$ mlmdquery {get,count} artifact-types` options.
-#[derive(Debug, structopt::StructOpt)]
+#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
 pub struct ArtifactTypesOpt {
     /// Database URL.
     #[structopt(long, env = "MLMD_DB", hide_env_values = true)]
+    #[serde(skip)]
     pub db: String,
 }
 
