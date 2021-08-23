@@ -3,14 +3,63 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 enum Opt {
+    #[allow(missing_docs)]
+    #[structopt(flatten)]
+    Batchable(BatchableOpt),
+
+    /// Generates graphs in DOT language.
+    Graph(GraphOpt),
+}
+
+#[derive(Debug, StructOpt)]
+#[structopt(rename_all = "kebab-case")]
+enum BatchableOpt {
     /// Counts artifacts/executions/contexts/events.
     Count(CountOpt),
 
     /// Gets artifacts/executions/contexts/events.
     Get(GetOpt),
+}
 
-    /// Generates graphs in DOT language.
-    Graph(GraphOpt),
+impl BatchableOpt {
+    fn db_uri(&self) -> &str {
+        match self {
+            Self::Count(CountOpt::Artifacts(opt)) => &opt.common.db,
+            Self::Get(GetOpt::Artifacts(opt)) => &opt.common.db,
+            Self::Count(CountOpt::ArtifactTypes(opt)) => &opt.db,
+            Self::Get(GetOpt::ArtifactTypes(opt)) => &opt.db,
+            Self::Count(CountOpt::Executions(opt)) => &opt.common.db,
+            Self::Get(GetOpt::Executions(opt)) => &opt.common.db,
+            Self::Count(CountOpt::ExecutionTypes(opt)) => &opt.db,
+            Self::Get(GetOpt::ExecutionTypes(opt)) => &opt.db,
+            Self::Count(CountOpt::Contexts(opt)) => &opt.common.db,
+            Self::Get(GetOpt::Contexts(opt)) => &opt.common.db,
+            Self::Count(CountOpt::ContextTypes(opt)) => &opt.db,
+            Self::Get(GetOpt::ContextTypes(opt)) => &opt.db,
+            Self::Count(CountOpt::Events(opt)) => &opt.common.db,
+            Self::Get(GetOpt::Events(opt)) => &opt.common.db,
+        }
+    }
+
+    async fn execute(&self) -> anyhow::Result<String> {
+        let mut store = mlmd::MetadataStore::connect(self.db_uri()).await?;
+        match self {
+            Self::Count(CountOpt::Artifacts(opt)) => to_json(opt.count(&mut store).await?),
+            Self::Get(GetOpt::Artifacts(opt)) => to_json(opt.get(&mut store).await?),
+            Self::Count(CountOpt::ArtifactTypes(opt)) => to_json(opt.count(&mut store).await?),
+            Self::Get(GetOpt::ArtifactTypes(opt)) => to_json(opt.get(&mut store).await?),
+            Self::Count(CountOpt::Executions(opt)) => to_json(opt.count(&mut store).await?),
+            Self::Get(GetOpt::Executions(opt)) => to_json(opt.get(&mut store).await?),
+            Self::Count(CountOpt::ExecutionTypes(opt)) => to_json(opt.count(&mut store).await?),
+            Self::Get(GetOpt::ExecutionTypes(opt)) => to_json(opt.get(&mut store).await?),
+            Self::Count(CountOpt::Contexts(opt)) => to_json(opt.count(&mut store).await?),
+            Self::Get(GetOpt::Contexts(opt)) => to_json(opt.get(&mut store).await?),
+            Self::Count(CountOpt::ContextTypes(opt)) => to_json(opt.count(&mut store).await?),
+            Self::Get(GetOpt::ContextTypes(opt)) => to_json(opt.get(&mut store).await?),
+            Self::Count(CountOpt::Events(opt)) => to_json(opt.count(&mut store).await?),
+            Self::Get(GetOpt::Events(opt)) => to_json(opt.get(&mut store).await?),
+        }
+    }
 }
 
 #[derive(Debug, StructOpt)]
@@ -77,28 +126,14 @@ enum GraphOpt {
 async fn main() -> anyhow::Result<()> {
     let opt = Opt::from_args();
     match opt {
-        Opt::Count(CountOpt::Artifacts(opt)) => print_json(opt.count().await?)?,
-        Opt::Get(GetOpt::Artifacts(opt)) => print_json(opt.get().await?)?,
-        Opt::Count(CountOpt::ArtifactTypes(opt)) => print_json(opt.count().await?)?,
-        Opt::Get(GetOpt::ArtifactTypes(opt)) => print_json(opt.get().await?)?,
-        Opt::Count(CountOpt::Executions(opt)) => print_json(opt.count().await?)?,
-        Opt::Get(GetOpt::Executions(opt)) => print_json(opt.get().await?)?,
-        Opt::Count(CountOpt::ExecutionTypes(opt)) => print_json(opt.count().await?)?,
-        Opt::Get(GetOpt::ExecutionTypes(opt)) => print_json(opt.get().await?)?,
-        Opt::Count(CountOpt::Contexts(opt)) => print_json(opt.count().await?)?,
-        Opt::Get(GetOpt::Contexts(opt)) => print_json(opt.get().await?)?,
-        Opt::Count(CountOpt::ContextTypes(opt)) => print_json(opt.count().await?)?,
-        Opt::Get(GetOpt::ContextTypes(opt)) => print_json(opt.get().await?)?,
-        Opt::Count(CountOpt::Events(opt)) => print_json(opt.count().await?)?,
-        Opt::Get(GetOpt::Events(opt)) => print_json(opt.get().await?)?,
+        Opt::Batchable(opt) => println!("{}", opt.execute().await?),
         Opt::Graph(GraphOpt::Lineage(opt)) => opt.graph(&mut std::io::stdout().lock()).await?,
         Opt::Graph(GraphOpt::Io(opt)) => opt.graph(&mut std::io::stdout().lock()).await?,
     }
     Ok(())
 }
 
-fn print_json(item: impl serde::Serialize) -> anyhow::Result<()> {
-    serde_json::to_writer_pretty(std::io::stdout().lock(), &item)?;
-    println!();
-    Ok(())
+fn to_json(item: impl serde::Serialize) -> anyhow::Result<String> {
+    let s = serde_json::to_string_pretty(&item)?;
+    Ok(s)
 }
