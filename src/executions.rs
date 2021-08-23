@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 
 /// `$ mlmdquery {get,count} executions` common options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
 #[structopt(rename_all = "kebab-case")]
 pub struct CommonExecutionsOpt {
@@ -151,7 +151,7 @@ impl From<ExecutionOrderByField> for mlmd::requests::ExecutionOrderByField {
 }
 
 /// `$ mlmdquery count executions` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 pub struct CountExecutionsOpt {
     /// Common options.
     #[structopt(flatten)]
@@ -168,7 +168,7 @@ impl CountExecutionsOpt {
 }
 
 /// `$ mlmdquery get executions` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GetExecutionsOpt {
     /// Common options.

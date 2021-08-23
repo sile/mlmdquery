@@ -2,7 +2,7 @@
 use crate::serialize::Type;
 
 /// `$ mlmdquery {get,count} context-types` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
 pub struct ContextTypesOpt {
     /// Database URL.

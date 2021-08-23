@@ -3,7 +3,7 @@ use crate::serialize::Event;
 use std::collections::BTreeMap;
 
 /// `$ mlmdquery {get,count} events` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
 #[serde(rename_all = "kebab-case")]
 pub struct CommonEventsOpt {
@@ -40,7 +40,7 @@ impl CommonEventsOpt {
 }
 
 /// `$ mlmdquery count events` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 pub struct CountEventsOpt {
     /// Common options.
     #[structopt(flatten)]
@@ -57,7 +57,7 @@ impl CountEventsOpt {
 }
 
 /// `$ mlmdquery get events` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GetEventsOpt {
     /// Common options.

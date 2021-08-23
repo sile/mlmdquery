@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 
 /// `$ mlmdquery {get,count} contexts` common options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
 #[serde(rename_all = "kebab-case")]
 pub struct CommonContextsOpt {
@@ -160,7 +160,7 @@ impl From<ContextOrderByField> for mlmd::requests::ContextOrderByField {
 }
 
 /// `$ mlmdquery count contexts` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 pub struct CountContextsOpt {
     /// Common options.
     #[structopt(flatten)]
@@ -177,7 +177,7 @@ impl CountContextsOpt {
 }
 
 /// `$ mlmdquery get contexts` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GetContextsOpt {
     /// Common options.

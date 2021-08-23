@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 
 /// `$ mlmdquery {get,count} artifacts` common options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
 #[serde(rename_all = "kebab-case")]
 pub struct CommonArtifactsOpt {
@@ -159,7 +159,7 @@ impl From<ArtifactOrderByField> for mlmd::requests::ArtifactOrderByField {
 }
 
 /// `$ mlmdquery count artifacts` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 pub struct CountArtifactsOpt {
     /// Common options.
     #[structopt(flatten)]
@@ -176,7 +176,7 @@ impl CountArtifactsOpt {
 }
 
 /// `$ mlmdquery get artifacts` options.
-#[derive(Debug, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GetArtifactsOpt {
     /// Common options.
