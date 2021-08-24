@@ -318,7 +318,14 @@ impl Graph {
             )?;
         }
 
+        let mut visited_edges = HashSet::new();
         for edge in &self.edges {
+            let key = (edge.from_node(), edge.to_node(), edge.label()?);
+            if visited_edges.contains(&key) {
+                continue;
+            }
+            visited_edges.insert(key);
+
             writeln!(
                 writer,
                 "  {:?} -> {:?} [label={:?}];",
