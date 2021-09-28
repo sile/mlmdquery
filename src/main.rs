@@ -198,6 +198,9 @@ enum GraphOpt {
     /// Generates a graph showing the lineage of an artifact.
     Lineage(mlmdquery::lineage::GraphLineageOpt),
 
+    /// Generates a graph showing the artifacts derived from an artifact.
+    Derived(mlmdquery::derived::GraphDerivedOpt),
+
     /// Generates a graph showing the input and output of an execution.
     Io(mlmdquery::io::GraphIoOpt),
 }
@@ -212,6 +215,7 @@ async fn main() -> anyhow::Result<()> {
         }
         Opt::Batch(opt) => opt.execute().await?,
         Opt::Graph(GraphOpt::Lineage(opt)) => opt.graph(&mut std::io::stdout().lock()).await?,
+        Opt::Graph(GraphOpt::Derived(opt)) => opt.graph(&mut std::io::stdout().lock()).await?,
         Opt::Graph(GraphOpt::Io(opt)) => opt.graph(&mut std::io::stdout().lock()).await?,
     }
     Ok(())
