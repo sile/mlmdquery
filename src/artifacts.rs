@@ -23,6 +23,11 @@ pub struct CommonArtifactsOpt {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
+    /// Target artifact name pattern (SQL LIKE statement value).
+    #[structopt(long, requires("type-name"), conflicts_with("name"))]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_pattern: Option<String>,
+
     /// Target artifact type.
     #[structopt(long = "type")]
     #[serde(rename = "type")]
@@ -75,11 +80,14 @@ impl CommonArtifactsOpt {
                     .map(mlmd::metadata::ArtifactId::new),
             );
         }
-        match (&self.name, &self.type_name) {
-            (Some(name), Some(type_name)) => {
+        match (&self.name, &self.name_pattern, &self.type_name) {
+            (Some(name), None, Some(type_name)) => {
                 request = request.type_and_name(type_name, name);
             }
-            (None, Some(type_name)) => {
+            (None, Some(name_pattern), Some(type_name)) => {
+                request = request.type_and_name_pattern(type_name, name_pattern);
+            }
+            (None, None, Some(type_name)) => {
                 request = request.ty(type_name);
             }
             _ => {}
