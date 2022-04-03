@@ -130,6 +130,7 @@ impl Edge {
         Ok(serde_json::to_string(&path)?)
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn from_node(&self) -> NodeId {
         let is_input = matches!(
             self.event.ty,

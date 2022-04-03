@@ -2,6 +2,7 @@ use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
+#[allow(clippy::large_enum_variant)]
 enum Opt {
     #[allow(missing_docs)]
     #[structopt(flatten)]
@@ -114,7 +115,7 @@ impl BatchableOpt {
 
     async fn execute(&self) -> anyhow::Result<serde_json::Value> {
         let mut store = mlmd::MetadataStore::connect(self.db_uri()).await?;
-        Ok(self.execute_with_store(&mut store).await?)
+        self.execute_with_store(&mut store).await
     }
 
     async fn execute_with_store(
