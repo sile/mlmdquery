@@ -1,7 +1,7 @@
 [package]
 name = "mlmdquery"
 version = "0.1.5"
-edition = "2018"
+edition = "2021"
 mlauthors = ["Takeru Ohta <phjgt308@gmail.com>"]
 description = "A command-line tool to query the contents of an ml-metadata DB."
 homepage = "https://github.com/sile/mlmdquery"
