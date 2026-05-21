@@ -139,7 +139,6 @@ impl ContextOrderByField {
     const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
 }
 
-
 impl std::str::FromStr for ContextOrderByField {
     type Err = anyhow::Error;
 

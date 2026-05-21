@@ -130,7 +130,6 @@ impl ExecutionOrderByField {
     const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
 }
 
-
 impl std::str::FromStr for ExecutionOrderByField {
     type Err = anyhow::Error;
 

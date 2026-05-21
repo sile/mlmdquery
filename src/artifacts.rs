@@ -138,7 +138,6 @@ impl ArtifactOrderByField {
     const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
 }
 
-
 impl std::str::FromStr for ArtifactOrderByField {
     type Err = anyhow::Error;
 
