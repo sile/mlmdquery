@@ -124,7 +124,9 @@ impl CommonContextsOpt {
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
+#[derive(Default)]
 pub enum ContextOrderByField {
+    #[default]
     Id,
     Name,
     #[serde(rename = "ctime")]
@@ -137,11 +139,6 @@ impl ContextOrderByField {
     const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
 }
 
-impl Default for ContextOrderByField {
-    fn default() -> Self {
-        Self::Id
-    }
-}
 
 impl std::str::FromStr for ContextOrderByField {
     type Err = anyhow::Error;

@@ -123,7 +123,9 @@ impl CommonArtifactsOpt {
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
+#[derive(Default)]
 pub enum ArtifactOrderByField {
+    #[default]
     Id,
     Name,
     #[serde(rename = "ctime")]
@@ -136,11 +138,6 @@ impl ArtifactOrderByField {
     const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
 }
 
-impl Default for ArtifactOrderByField {
-    fn default() -> Self {
-        Self::Id
-    }
-}
 
 impl std::str::FromStr for ArtifactOrderByField {
     type Err = anyhow::Error;

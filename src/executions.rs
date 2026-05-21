@@ -6,7 +6,7 @@ use std::time::Duration;
 /// `$ mlmdquery {get,count} executions` common options.
 #[derive(Debug, Clone, structopt::StructOpt, serde::Serialize, serde::Deserialize)]
 #[structopt(rename_all = "kebab-case")]
-#[structopt(rename_all = "kebab-case")]
+#[serde(rename_all = "kebab-case")]
 pub struct CommonExecutionsOpt {
     /// Database URL.
     #[structopt(long, env = "MLMD_DB", hide_env_values = true)]
@@ -115,7 +115,9 @@ impl CommonExecutionsOpt {
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
+#[derive(Default)]
 pub enum ExecutionOrderByField {
+    #[default]
     Id,
     Name,
     #[serde(rename = "ctime")]
@@ -128,11 +130,6 @@ impl ExecutionOrderByField {
     const POSSIBLE_VALUES: &'static [&'static str] = &["id", "name", "ctime", "mtime"];
 }
 
-impl Default for ExecutionOrderByField {
-    fn default() -> Self {
-        Self::Id
-    }
-}
 
 impl std::str::FromStr for ExecutionOrderByField {
     type Err = anyhow::Error;
